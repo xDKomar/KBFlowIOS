@@ -7,6 +7,7 @@ class ViewController: UIViewController {
     let button = UIButton()
     let clearButton = UIButton(type: .custom)
     let microphoneButton = UIButton()
+    var isSpeechFinal = false;
     
     let dict: [String: String] = [
         "mon": "71kth5ICZrYi",
@@ -41,6 +42,7 @@ class ViewController: UIViewController {
         
         textField.backgroundColor = .white
         textField.font = UIFont.systemFont(ofSize: 32)
+        textField.textColor = .black
         textField.borderStyle = .roundedRect
         textField.becomeFirstResponder()
     
@@ -87,9 +89,11 @@ class ViewController: UIViewController {
     
     @objc func clearTextField() {
         textField.text = ""
+        isSpeechFinal = true;
     }
     
     @objc func sendPostRequest() {
+        isSpeechFinal = true;
         guard let text = textField.text, !text.isEmpty else {
             // Handle case when the text field is empty
             return
@@ -104,7 +108,12 @@ class ViewController: UIViewController {
         ]
         
         do {
-            if let url = URL(string: "https://kanbanflow.com/api/v1/tasks?apiToken=cR4EARu6Lnjmww4ipKAvAzPcAZ") {
+            let secrets = Bundle.main.path(forResource: "Secrets", ofType: "plist")
+            let secretsDict = NSDictionary(contentsOfFile: secrets!)
+            let token = secretsDict!["api-token"] as? String ;
+            let urlString = "https://kanbanflow.com/api/v1/tasks?apiToken=" + token!;
+            
+            if let url = URL(string: urlString) {
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -128,53 +137,71 @@ class ViewController: UIViewController {
         }
         textField.text = "";
     }
-    let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "ru-RU")) // Specify the desired locale
+     // Specify the desired locale
     
     @objc func startVoiceInput() {
-        // Check if speech recognition is available
-        guard let recognizer = speechRecognizer else {
-            print("Speech recognition is not available.")
-            return
+        let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "ru-RU"))!
+        var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+        var recognitionTask: SFSpeechRecognitionTask?
+        let audioEngine = AVAudioEngine()
+        self.isSpeechFinal = false
+        do {
+            try startRecording();
+        } catch {
+            print("Recognition issues")
         }
-
-        SFSpeechRecognizer.requestAuthorization { (status) in
-            if status == .authorized {
-                let recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
-                let audioEngine = AVAudioEngine()
-
-                do {
-                    try AVAudioSession.sharedInstance().setCategory(.record, mode: .measurement, options: .duckOthers)
-                    try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
-
-                    let inputNode = audioEngine.inputNode
-
-                    let recognitionTask = recognizer.recognitionTask(with: recognitionRequest) { (result, error) in
-                        if let result = result {
-                            let bestString = result.bestTranscription.formattedString
-                            DispatchQueue.main.async {
-                                self.textField.text = bestString
-                            }
-                        }
-                    }
-
-                    let recordingFormat = inputNode.outputFormat(forBus: 0)
-                    inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer, _) in
-                        recognitionRequest.append(buffer)
-                    }
-
-                    audioEngine.prepare()
-
-                    do {
-                        try audioEngine.start()
-                    } catch {
-                        print("Audio engine couldn't start because of an error: \(error.localizedDescription)")
-                    }
-                } catch {
-                    print("Failed to configure audio session: \(error.localizedDescription)")
+        func startRecording() throws {
+          
+          // Cancel the previous recognition task.
+          recognitionTask?.cancel()
+          recognitionTask = nil
+          
+          // Audio session, to get information from the microphone.
+          let audioSession = AVAudioSession.sharedInstance()
+          try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
+          try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+          let inputNode = audioEngine.inputNode
+          
+          // The AudioBuffer
+          recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+          recognitionRequest!.shouldReportPartialResults = true
+          
+          // Force speech recognition to be on-device
+          if #available(iOS 13, *) {
+            recognitionRequest!.requiresOnDeviceRecognition = true
+          }
+          
+          // Actually create the recognition task. We need to keep a pointer to it so we can stop it.
+          recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest!) { result, error in
+              
+            
+            if let result = result {
+                if(!self.isSpeechFinal)
+                {
+                    self.textField.text = result.bestTranscription.formattedString;
                 }
-            } else {
-                print("Speech recognition authorization denied.")
+                
             }
+            
+              if error != nil || self.isSpeechFinal {
+              // Stop recognizing speech if there is a problem.
+              audioEngine.stop()
+              inputNode.removeTap(onBus: 0)
+              
+              recognitionRequest = nil
+              recognitionTask = nil
+            }
+          }
+          
+          // Configure the microphone.
+          let recordingFormat = inputNode.outputFormat(forBus: 0)
+            // The buffer size tells us how much data should the microphone record before dumping it into the recognition request.
+          inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer: AVAudioPCMBuffer, when: AVAudioTime) in
+            recognitionRequest?.append(buffer)
+          }
+          
+          audioEngine.prepare()
+          try audioEngine.start()
         }
     }
 }

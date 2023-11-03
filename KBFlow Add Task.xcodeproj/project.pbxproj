@@ -13,6 +13,7 @@
 		DC486CEB2AF14130001731CC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DC486CE92AF14130001731CC /* Main.storyboard */; };
 		DC486CED2AF14131001731CC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC486CEC2AF14131001731CC /* Assets.xcassets */; };
 		DC486CF02AF14131001731CC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DC486CEE2AF14131001731CC /* LaunchScreen.storyboard */; };
+		DC5D027D2AF548FF00317118 /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = DC5D027C2AF548FF00317118 /* Secrets.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		DC486CEC2AF14131001731CC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DC486CEF2AF14131001731CC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		DC486CF12AF14131001731CC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DC5D027C2AF548FF00317118 /* Secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Secrets.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +65,7 @@
 				DC486CEC2AF14131001731CC /* Assets.xcassets */,
 				DC486CEE2AF14131001731CC /* LaunchScreen.storyboard */,
 				DC486CF12AF14131001731CC /* Info.plist */,
+				DC5D027C2AF548FF00317118 /* Secrets.plist */,
 			);
 			path = KBFlowTaskCreator;
 			sourceTree = "<group>";
@@ -125,6 +128,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DC5D027D2AF548FF00317118 /* Secrets.plist in Resources */,
 				DC486CF02AF14131001731CC /* LaunchScreen.storyboard in Resources */,
 				DC486CED2AF14131001731CC /* Assets.xcassets in Resources */,
 				DC486CEB2AF14130001731CC /* Main.storyboard in Resources */,
